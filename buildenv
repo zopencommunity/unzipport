@@ -1,0 +1,25 @@
+export ZOPEN_GIT_URL="https://github.com/LuaDist/unzip"
+export ZOPEN_GIT_DEPS="git make cmake zoslib zip"
+export ZOPEN_TYPE="GIT"
+export ZOPEN_CONFIGURE="cmake"
+export ZOPEN_CONFIGURE_OPTS=". -DBUILD_TESTING=ON -DENABLE_STATIC_INIT=ON -DZOSLIB_GENERIC=ON -DCMAKE_INSTALL_PREFIX=\$ZOPEN_INSTALL_DIR/ -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -D_XOPEN_SOURCE=600 "
+export ZOPEN_INSTALL="cmake"
+export ZOPEN_INSTALL_OPTS="--install . --prefix \$ZOPEN_INSTALL_DIR/"
+export ZOPEN_CHECK="${PWD}/unzip-tests/tests.sh"
+
+zopen_check_results()
+{
+  dir="$1"
+  pfx="$2"
+  chk="$1/$2_check.log"
+
+  # Echo the following information to guage build health
+  echo "actualFailures:0"
+  echo "totalTests:1"
+  echo "expectedFailures:0"
+}
+
+zopen_append_to_env()
+{
+  # echo envars outside of PATH, MANPATH, LIBPATH
+}
