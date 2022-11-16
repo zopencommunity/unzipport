@@ -9,14 +9,16 @@ export ZOPEN_CHECK="${PWD}/unzip-tests/tests.sh"
 
 zopen_check_results()
 {
-  dir="$1"
-  pfx="$2"
   chk="$1/$2_check.log"
+  totalTests=$(egrep "^Total tests:" $chk | awk '{ print $3}')
+  failures=$(egrep "^Failed:" $chk | awk '{ print $2}')
 
-  # Echo the following information to guage build health
-  echo "actualFailures:0"
-  echo "totalTests:1"
-  echo "expectedFailures:0"
+# Echo the following information to guage build health
+cat <<TEST
+actualFailures:$failures
+totalTests:$totalTests
+expectedFailures:2
+TEST
 }
 
 zopen_append_to_env()
