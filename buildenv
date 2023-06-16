@@ -25,3 +25,8 @@ zopen_append_to_env()
 {
   # echo envars outside of PATH, MANPATH, LIBPATH
 }
+
+zopen_get_version()
+{
+   ./unzip -v | awk 'NR==1{print $2}'
+}
