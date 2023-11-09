@@ -1,6 +1,10 @@
-export ZOPEN_GIT_URL="https://github.com/LuaDist/unzip"
-export ZOPEN_GIT_DEPS="git make cmake zoslib zip"
-export ZOPEN_TYPE="GIT"
+# Two underscores are needed here, so that this isn't accidentally picked up by the ZIP_VERSION regex
+# bump: unzip-version /UNZIP__VERSION="(.*)"/ https://github.com/LuaDist/unzip.git|semver:*
+UNZIP__VERSION="6.0"
+
+export ZOPEN_BUILD_LINE="DEV"
+export ZOPEN_DEV_URL="https://github.com/LuaDist/unzip.git"
+export ZOPEN_DEV_DEPS="git make cmake zoslib zip"
 export ZOPEN_CONFIGURE="cmake"
 export ZOPEN_CONFIGURE_OPTS="."
 export ZOPEN_INSTALL="cmake"
