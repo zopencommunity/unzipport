@@ -1,6 +1,5 @@
-# Two underscores are needed here, so that this isn't accidentally picked up by the ZIP_VERSION regex
-# bump: unzip-version /UNZIP__VERSION="(.*)"/ https://github.com/LuaDist/unzip.git|semver:*
-UNZIP__VERSION="6.0"
+# bump: unzip-version /UNZIP_VERSION="(.*)"/ https://github.com/LuaDist/unzip.git|semver:*
+UNZIP_VERSION="6.0"
 
 export ZOPEN_BUILD_LINE="DEV"
 export ZOPEN_DEV_URL="https://github.com/LuaDist/unzip.git"
