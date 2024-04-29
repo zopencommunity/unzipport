@@ -1,0 +1,14 @@
+diff --git a/extract.c b/extract.c
+index 1acd769..0775a70 100644
+--- a/extract.c
++++ b/extract.c
+@@ -1658,6 +1658,9 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
+             G.outfile = freopen("", "wb", stdout);   /* VAC++ ignores setmode */
+ #else
+             G.outfile = stdout;
++	    #ifdef __MVS__ /* z/OS: handle ccsid conversion for terminal */
++            zos_open_stdout(__G);
++#endif /* __MVS__ */
+ #endif
+ #ifdef DOS_FLX_NLM_OS2_W32
+ #if (defined(__HIGHC__) && !defined(FLEXOS))
