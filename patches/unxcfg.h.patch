@@ -1,0 +1,72 @@
+diff --git a/unix/unxcfg.h b/unix/unxcfg.h
+index e39b283..71946b5 100644
+--- a/unix/unxcfg.h
++++ b/unix/unxcfg.h
+@@ -212,7 +212,59 @@ typedef struct stat z_stat;
+ #  define RESTORE_UIDGID
+ #endif /* ?MTS */
+ 
++#ifdef __MVS__
++#include <unistd.h>
++#include <utime.h>
++#define GOT_UTIMBUF
++
++/* z/OS specific definitions of Trace() and Info() macros.
++ * Restore default ccsid for terminal to output message and then
++ * back to the previous ccsid. */
++#define ZOS_STDOUT_RESTORE 0
++#define ZOS_STDOUT_CONVERT 1
++
++#ifdef DEBUG
++#undef Trace
++#  define Trace(x) do { \
++     if (G.zos_stdout_conv) (*G.zos_stdout_conv)(ZOS_STDOUT_RESTORE); \
++     fprintf x; \
++     if (G.zos_stdout_conv) (*G.zos_stdout_conv)(ZOS_STDOUT_CONVERT); \
++   } while(0)
++#endif
++
++#undef Info
++#ifdef FUNZIP
++#  define Info(buf,flag,sprf_arg) do { \
++     if (G.zos_stdout_conv) (*G.zos_stdout_conv)(ZOS_STDOUT_RESTORE); \
++     fputs((char *)(sprintf sprf_arg, (buf)), (flag)&1? stderr : stdout); \
++     if (G.zos_stdout_conv) (*G.zos_stdout_conv)(ZOS_STDOUT_CONVERT); \
++   } while(0)
++#else
++#  define Info(buf,flag,sprf_arg) do { \
++     if (G.zos_stdout_conv) (*G.zos_stdout_conv)(ZOS_STDOUT_RESTORE); \
++     (*G.message)((zvoid *)&G, (uch *)(buf), (ulg)sprintf sprf_arg, (flag)); \
++     if (G.zos_stdout_conv) (*G.zos_stdout_conv)(ZOS_STDOUT_CONVERT); \
++   } while(0)
++#endif
++
++/* Redefine macros to restore default ccsid for terminal before
++ * each exit/return if it is necessary. */
++#define DESTROYGLOBALS(x) \
++     if (G.zos_stdout_conv) (*G.zos_stdout_conv)(ZOS_STDOUT_RESTORE)
++
++typedef void (StdoutConvFn) (int flag);
++
+ /* Static variables that we have to add to Uz_Globs: */
++#define SYSTEM_SPECIFIC_GLOBALS \
++    int created_dir, renamed_fullpath;\
++    char *rootpath, *buildpath, *end;\
++    ZCONST char *wildname;\
++    char *dirname, matchname[FILNAMSIZ];\
++    int rootlen, have_dirname, dirnamelen, notfirstcall;\
++    zvoid *wild_dir;\
++    struct zos_file_tag zos_tag;\
++    StdoutConvFn *zos_stdout_conv;
++#else /* !__ZOS__ */
+ #define SYSTEM_SPECIFIC_GLOBALS \
+     int created_dir, renamed_fullpath;\
+     char *rootpath, *buildpath, *end;\
+@@ -220,6 +272,7 @@ typedef struct stat z_stat;
+     char *dirname, matchname[FILNAMSIZ];\
+     int rootlen, have_dirname, dirnamelen, notfirstcall;\
+     zvoid *wild_dir;
++#endif /* __MVS__ */
+ 
+ /* created_dir, and renamed_fullpath are used by both mapname() and    */
+ /*    checkdir().                                                      */

@@ -1,0 +1,18 @@
+diff --git a/globals.h b/globals.h
+index 11b7215..da4feca 100644
+--- a/globals.h
++++ b/globals.h
+@@ -151,6 +151,13 @@
+ /*  Globals  */
+ /*************/
+ 
++#ifdef __MVS__
++struct zos_file_tag {                /* File Tag Attributes         */
++       unsigned short ft_ccsid;       /*   Character Set Id          */
++       unsigned int   ft_flags :1;  /*               */
++     };
++#endif
++
+ typedef struct Globals {
+ #ifdef DLL
+     zvoid *callerglobs; /* pointer to structure of pass-through global vars */

@@ -1,5 +1,5 @@
 diff --git a/ttyio.c b/ttyio.c
-index a1a13b1..0ba26c2 100644
+index a1a13b1..db8cfb6 100644
 --- a/ttyio.c
 +++ b/ttyio.c
 @@ -125,7 +125,7 @@
@@ -27,28 +27,3 @@ index a1a13b1..0ba26c2 100644
  #        endif /* !CMS_MVS */
  #      endif /* ?USE_SYSV_TERMIO */
  #    endif /* ?HAVE_TERMIOS_H */
-diff --git a/unix/unix.c b/unix/unix.c
-index efa97fc..a20d085 100644
---- a/unix/unix.c
-+++ b/unix/unix.c
-@@ -62,7 +62,7 @@
- #      include <ndir.h>
- #    endif
- #  else /* !SYSV */
--#    ifndef NO_SYSDIR
-+#  if ! defined ( NO_SYSDIR ) && ! defined ( __MVS__ )
- #      include <sys/dir.h>
- #    endif
- #  endif /* ?SYSV */
-@@ -180,7 +180,10 @@ struct dirent *readdir(dirp)
- } /* end function readdir() */
-
- #endif /* NO_DIR */
--
-+#ifdef __MVS__
-+#include <sys/types.h>
-+#include <dirent.h>
-+#endif
-
- /**********************/
- /* Function do_wild() */   /* for porting: dir separator; match(ignore_case) */

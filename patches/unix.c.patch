@@ -1,0 +1,149 @@
+diff --git a/unix/unix.c b/unix/unix.c
+index efa97fc..4c43362 100644
+--- a/unix/unix.c
++++ b/unix/unix.c
+@@ -30,6 +30,11 @@
+ #define UNZIP_INTERNAL
+ #include "unzip.h"
+ 
++
++#ifdef __MVS__
++#include <utime.h>
++#endif
++
+ #ifdef SCO_XENIX
+ #  define SYSNDIR
+ #else  /* SCO Unix, AIX, DNIX, TI SysV, Coherent 4.x, ... */
+@@ -62,7 +67,7 @@
+ #      include <ndir.h>
+ #    endif
+ #  else /* !SYSV */
+-#    ifndef NO_SYSDIR
++#  if ! defined ( NO_SYSDIR ) && ! defined ( __MVS__ )
+ #      include <sys/dir.h>
+ #    endif
+ #  endif /* ?SYSV */
+@@ -180,7 +185,10 @@ struct dirent *readdir(dirp)
+ } /* end function readdir() */
+ 
+ #endif /* NO_DIR */
+-
++#ifdef __MVS__
++#include <sys/types.h>
++#include <dirent.h>
++#endif
+ 
+ /**********************/
+ /* Function do_wild() */   /* for porting: dir separator; match(ignore_case) */
+@@ -1091,6 +1099,82 @@ static int get_extattribs(__G__ pzt, z_uidgid)
+ }
+ #endif /* !MTS || SET_DIR_ATTRIB */
+ 
++#ifdef __MVS__
++
++/* Iterates through extra-field blocks to find block with file tag info.
++ * Copies tag info to the global zos_file_tag structure G.zos_tag. */
++static int get_tagattribs(__G)
++  __GDEF
++{
++    unsigned ef_len = G.lrec.extra_field_length;
++    uch *ef_buf = G.extra_field;
++    unsigned eb_id;
++    unsigned eb_len;
++
++    while (ef_len >= EB_HEADSIZE) {
++        eb_id = makeword(EB_ID + ef_buf);
++        eb_len = makeword(EB_LEN + ef_buf);
++
++        if (eb_id == 0x737A) { /* Extra-field block with file tag info */
++            G.zos_tag.ft_ccsid = makeword(4 + ef_buf);
++            G.zos_tag.ft_flags = makeword(6 + ef_buf);
++            return 0;
++        }
++
++        /* Skip unknown extra field block */
++        ef_buf += (eb_len + EB_HEADSIZE);
++        ef_len -= (eb_len + EB_HEADSIZE);
++    }
++    return -1;
++}
++
++
++/* Changes ccsid for terminal */
++void zos_stdout_conversion(__G__ flag)
++    __GDEF
++    int flag;
++{
++    struct zos_fconvert fc = { .command = 1, //F_CVT_ON,
++                               .file_ccsid = 819, /* Set new ccsid */
++                               .prog_ccsid = 0 };
++    if (flag == ZOS_STDOUT_RESTORE)
++        fc.file_ccsid = 1047; /* Restore default ccsid */
++    fcntl(STDOUT_FILENO, F_CONTROL_CVT, &fc);
++}
++
++
++/* Sets tag for outfile */
++void zos_set_outfile_tag(__G)
++    __GDEF
++{
++  attrib_t attr;
++  memset(&attr, 0, sizeof(attr));
++  attr.att_filetagchg = 1;
++  attr.att_filetag.ft_ccsid = G.zos_tag.ft_ccsid;
++  if (attr.att_filetag.ft_ccsid!= FT_BINARY) {
++    attr.att_filetag.ft_txtflag = 1;
++  }
++  __fchattr(fileno(G.outfile), &attr, sizeof(attr));
++  __disableautocvt(fileno(G.outfile));
++}
++
++
++/* Changes ccsid for terminal when ebcdic tagged file is extracted to stdout */
++void zos_open_stdout(__G)
++    __GDEF
++{
++    if (!uO.cflag)
++        return;
++
++    get_tagattribs();
++    if (isatty(STDOUT_FILENO) && (G.zos_tag.ft_ccsid == 1047)) {
++        /* Set pointer to function that allows to restore default terminal ccsid
++           when it is necessary to show information/error message. */
++        G.zos_stdout_conv = &zos_stdout_conversion;
++        (*G.zos_stdout_conv)(ZOS_STDOUT_CONVERT);
++    }
++}
++#endif /* __MVS__ */
+ 
+ 
+ #ifndef MTS
+@@ -1109,6 +1193,28 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
+     ulg z_uidgid[2];
+     int have_uidgid_flg;
+ 
++    #ifdef __MVS__
++    if (uO.cflag) {   /* File was extracted to stdout */
++        if (G.zos_stdout_conv) {
++            /* Pointer to the function that allows to change ccsid for terminal
++               is not NULL so default terminal ccsid should be restored and
++               function pointer should be cleared. */
++            (*G.zos_stdout_conv)(ZOS_STDOUT_RESTORE);
++            G.zos_stdout_conv = NULL;
++            G.zos_tag.ft_ccsid = 0;
++        }
++        else if ((zfstat(STDOUT_FILENO, &G.statbuf) == 0) && \
++                 (S_ISREG(G.statbuf.st_mode)))
++          /* Output was redirected to file - set tag for that file */
++            zos_set_outfile_tag();
++        return;
++    }
++
++    /* Set tag for the extracted file */
++    get_tagattribs();
++    zos_set_outfile_tag();
++#endif /* __MVS__ */
++
+     have_uidgid_flg = get_extattribs(__G__ &(zt.t3), z_uidgid);
+ 
+ /*---------------------------------------------------------------------------

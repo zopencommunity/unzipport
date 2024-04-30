@@ -1,0 +1,20 @@
+diff --git a/fileio.c b/fileio.c
+index ba0a1d0..580b23e 100644
+--- a/fileio.c
++++ b/fileio.c
+@@ -83,7 +83,6 @@
+ #endif
+ #include "ebcdic.h"   /* definition/initialization of ebcdic[] */
+ 
+-
+ /*
+    Note: Under Windows, the maximum size of the buffer that can be used
+    with any of the *printf calls is 16,384, so win_fprintf was used to
+@@ -253,6 +252,7 @@ int open_input_file(__G)    /* return 1 if open failed */
+           G.zipfn, strerror(errno)));
+         return 1;
+     }
++__disableautocvt(G.zipfd);
+     return 0;
+ 
+ } /* end function open_input_file() */

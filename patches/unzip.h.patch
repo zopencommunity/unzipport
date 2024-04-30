@@ -1,0 +1,30 @@
+diff --git a/unzip.h b/unzip.h
+index 5b2a326..07dbf4d 100644
+--- a/unzip.h
++++ b/unzip.h
+@@ -97,6 +97,11 @@ freely, subject to the above disclaimer and the following restrictions:
+ #  endif
+ #endif
+ 
++
++#ifdef __MVS__
++#include <unistd.h>
++#endif
++
+ #if ((defined(__convex__) || defined(__convexc__)) && !defined(CONVEX))
+ #  define CONVEX
+ #endif
+@@ -404,6 +409,13 @@ typedef unsigned long   ulg;    /*  predefined on some systems) & match zip  */
+ #define _IZ_TYPES_DEFINED
+ #endif /* !_IZ_TYPES_DEFINED */
+ 
++#ifdef __MVS__
++struct zos_fconvert {                /* File Tag Attributes         */
++       unsigned short command;       /*   Character Set Id          */
++       unsigned short file_ccsid;       /*   Character Set Id          */
++       unsigned int   prog_ccsid :1;  /*               */
++     };
++#endif
+ /* InputFn is not yet used and is likely to change: */
+ #ifdef PROTO
+    typedef int   (UZ_EXP MsgFn)     (zvoid *pG, uch *buf, ulg size, int flag);
