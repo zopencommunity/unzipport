@@ -1,5 +1,5 @@
 diff --git a/unix/unix.c b/unix/unix.c
-index efa97fc..dc3f854 100644
+index efa97fc..95ecab7 100644
 --- a/unix/unix.c
 +++ b/unix/unix.c
 @@ -30,6 +30,11 @@
@@ -23,7 +23,7 @@ index efa97fc..dc3f854 100644
  #      include <sys/dir.h>
  #    endif
  #  endif /* ?SYSV */
-@@ -180,7 +185,10 @@ struct dirent *readdir(dirp)
+@@ -180,7 +185,12 @@ struct dirent *readdir(dirp)
  } /* end function readdir() */
  
  #endif /* NO_DIR */
@@ -31,11 +31,21 @@ index efa97fc..dc3f854 100644
 +#ifdef __MVS__
 +#include <sys/types.h>
 +#include <dirent.h>
++#include <stdbool.h>
++#include "zos-io.h"
 +#endif
  
  /**********************/
  /* Function do_wild() */   /* for porting: dir separator; match(ignore_case) */
-@@ -1091,6 +1099,82 @@ static int get_extattribs(__G__ pzt, z_uidgid)
+@@ -686,7 +696,6 @@ int mapname(__G__ renamed)
+         *pathcomp = '_';
+     else if (strcmp(pathcomp, "..") == 0)
+         strcpy(pathcomp, "__");
+-
+ #ifdef ACORN_FTYPE_NFS
+     /* translate Acorn filetype information if asked to do so */
+     if (uO.acorn_nfs_ext &&
+@@ -1091,6 +1100,88 @@ static int get_extattribs(__G__ pzt, z_uidgid)
  }
  #endif /* !MTS || SET_DIR_ATTRIB */
  
@@ -90,7 +100,13 @@ index efa97fc..dc3f854 100644
 +  attrib_t attr;
 +  memset(&attr, 0, sizeof(attr));
 +  attr.att_filetagchg = 1;
-+  attr.att_filetag.ft_ccsid = G.zos_tag.ft_ccsid;
++
++  /* CCSID 65535 - for binary files, 0 for untagged files*/
++  if(uO.aflag && G.zos_tag.ft_ccsid != 65535 
++		  && G.zos_tag.ft_ccsid != 0)
++  	attr.att_filetag.ft_ccsid = 1047;
++  else
++  	attr.att_filetag.ft_ccsid = G.zos_tag.ft_ccsid;
 +  if (attr.att_filetag.ft_ccsid!= FT_BINARY && attr.att_filetag.ft_ccsid != 0) {
 +    attr.att_filetag.ft_txtflag = 1;
 +  }
@@ -118,7 +134,7 @@ index efa97fc..dc3f854 100644
  
  
  #ifndef MTS
-@@ -1109,6 +1193,28 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
+@@ -1109,6 +1200,28 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
      ulg z_uidgid[2];
      int have_uidgid_flg;
  

@@ -1,0 +1,14 @@
+diff --git a/zipinfo.c b/zipinfo.c
+index a92bca9..660a762 100644
+--- a/zipinfo.c
++++ b/zipinfo.c
+@@ -24,7 +24,8 @@
+ 
+ #define UNZIP_INTERNAL
+ #include "unzip.h"
+-
++#include "ebcdic.h"
++#include "unzpriv.h"
+ 
+ #ifndef NO_ZIPINFO  /* strings use up too much space in small-memory systems */
+ 
