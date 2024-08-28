@@ -1,5 +1,5 @@
 diff --git a/extract.c b/extract.c
-index 1acd769..0775a70 100644
+index 1acd769..c8d663d 100644
 --- a/extract.c
 +++ b/extract.c
 @@ -1658,6 +1658,9 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
@@ -12,3 +12,12 @@ index 1acd769..0775a70 100644
  #endif
  #ifdef DOS_FLX_NLM_OS2_W32
  #if (defined(__HIGHC__) && !defined(FLEXOS))
+@@ -1727,7 +1730,7 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
+             while ((b = NEXTBYTE) != EOF) {
+                 *G.outptr++ = (uch)b;
+                 if (++G.outcnt == wsize) {
+-                    error = flush(__G__ redirSlide, G.outcnt, 0);
++		    error = flush(__G__ redirSlide, G.outcnt, 0);
+                     G.outptr = redirSlide;
+                     G.outcnt = 0L;
+                     if (error != PK_COOL || G.disk_full) break;

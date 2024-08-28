@@ -1,13 +1,16 @@
 diff --git a/unzpriv.h b/unzpriv.h
-index dc9eff5..f8faa37 100644
+index dc9eff5..cbdaa84 100644
 --- a/unzpriv.h
 +++ b/unzpriv.h
-@@ -1120,7 +1120,7 @@
- #endif /* TOPS20 */
+@@ -1844,6 +1844,11 @@
+ #define CR     13        /* '\r' on ASCII machines; must be 13 due to EBCDIC */
+ #define CTRLZ  26        /* DOS & OS/2 EOF marker (used in fileio.c, vms.c) */
  
- /* Defaults when nothing special has been defined previously. */
--#ifdef MODERN
-+#if defined (MODERN) && !defined (__MVS__)
- #  ifndef FOPR
- #    define FOPR "rb"
- #  endif
++
++#ifdef __MVS__
++#  define native_to_ebcdic(c)     ebcdic[(uch)(c)]
++#endif
++
+ #ifdef EBCDIC
+ #  define foreign(c)    ascii[(uch)(c)]
+ #  define native(c)     ebcdic[(uch)(c)]

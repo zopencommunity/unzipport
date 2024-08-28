@@ -1,5 +1,5 @@
 diff --git a/fileio.c b/fileio.c
-index ba0a1d0..580b23e 100644
+index ba0a1d0..fc628c9 100644
 --- a/fileio.c
 +++ b/fileio.c
 @@ -83,7 +83,6 @@
@@ -18,3 +18,50 @@ index ba0a1d0..580b23e 100644
      return 0;
  
  } /* end function open_input_file() */
+@@ -459,6 +459,8 @@ int open_outfile(__G)           /* return 1 if fail */
+            the output files. Output files are created with Read&Write access.
+          */
+         G.outfile = zfopen(G.filename, FOPWR);
++	int fd = fileno(G.outfile);
++	__chgfdccsid(fd,1047);
+ #else
+         G.outfile = zfopen(G.filename, FOPW);
+ #endif
+@@ -1008,23 +1010,34 @@ static int partflush(__G__ rawbuf, size, unshrink)
+         /* else not VMS text */ {
+             p = rawbuf;
+             if (*p == LF && G.didCRlast)
++	    {
+                 ++p;
++	    }
+             G.didCRlast = FALSE;
+             for (q = transbuf;  (extent)(p-rawbuf) < (extent)size;  ++p) {
+                 if (*p == CR) {           /* lone CR or CR/LF: treat as EOL  */
+-                    PutNativeEOL
++                   *q = native_to_ebcdic(LF); 
++                   q++;
+                     if ((extent)(p-rawbuf) == (extent)size-1)
+                         /* last char in buffer */
+                         G.didCRlast = TRUE;
+                     else if (p[1] == LF)  /* get rid of accompanying LF */
+                         ++p;
+                 } else if (*p == LF)      /* lone LF */
+-                    PutNativeEOL
++		{
++                   *q = native_to_ebcdic(LF); 
++                   q++;
++		}
+                 else
+ #ifndef DOS_FLX_OS2_W32
+                 if (*p != CTRLZ)          /* lose all ^Z's */
++		{
++#endif
++                   *q = native_to_ebcdic(*p);
++		   q++;
++#ifndef DOS_FLX_OS2_W32
++		}
+ #endif
+-                    *q++ = native(*p);
+ 
+ #if (defined(SMALL_MEM) || defined(MED_MEM))
+ # if (lenEOL == 1)   /* don't check unshrink:  both buffers small but equal */

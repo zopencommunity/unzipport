@@ -1,0 +1,16 @@
+diff --git a/acorn/riscos.h b/acorn/riscos.h
+index 6aa8c33..02939b6 100644
+--- a/acorn/riscos.h
++++ b/acorn/riscos.h
+@@ -99,7 +99,11 @@ typedef struct {
+ #    define DATE_FORMAT DF_DMY
+ #  endif
+ #  define lenEOL 1
++#ifdef __MVS__
++#  define PutNativeEOL  *q++ = native_to_ebcdic(LF);
++#else
+ #  define PutNativeEOL  *q++ = native(LF);
++#endif
+ #  define USE_STRM_INPUT
+ #  define USE_FWRITE
+ #  define PIPE_ERROR (errno == 9999)    /* always false */
