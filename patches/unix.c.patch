@@ -1,5 +1,5 @@
 diff --git a/unix/unix.c b/unix/unix.c
-index efa97fc..95ecab7 100644
+index efa97fc..871729b 100644
 --- a/unix/unix.c
 +++ b/unix/unix.c
 @@ -30,6 +30,11 @@
@@ -45,7 +45,7 @@ index efa97fc..95ecab7 100644
  #ifdef ACORN_FTYPE_NFS
      /* translate Acorn filetype information if asked to do so */
      if (uO.acorn_nfs_ext &&
-@@ -1091,6 +1100,88 @@ static int get_extattribs(__G__ pzt, z_uidgid)
+@@ -1091,6 +1100,101 @@ static int get_extattribs(__G__ pzt, z_uidgid)
  }
  #endif /* !MTS || SET_DIR_ATTRIB */
  
@@ -100,20 +100,33 @@ index efa97fc..95ecab7 100644
 +  attrib_t attr;
 +  memset(&attr, 0, sizeof(attr));
 +  attr.att_filetagchg = 1;
-+
++  
 +  /* CCSID 65535 - for binary files, 0 for untagged files*/
-+  if(uO.aflag && G.zos_tag.ft_ccsid != 65535 
-+		  && G.zos_tag.ft_ccsid != 0)
++  if(uO.aflag && ((G.zos_tag.ft_ccsid != 65535 && G.zos_tag.ft_ccsid != 0) 
++		  || (!G.zos_tag.ft_ccsid && G.pInfo->textfile)))
++  {
 +  	attr.att_filetag.ft_ccsid = 1047;
++  }
 +  else
++  {
 +  	attr.att_filetag.ft_ccsid = G.zos_tag.ft_ccsid;
++  }
 +  if (attr.att_filetag.ft_ccsid!= FT_BINARY && attr.att_filetag.ft_ccsid != 0) {
 +    attr.att_filetag.ft_txtflag = 1;
 +  }
 +  __fchattr(fileno(G.outfile), &attr, sizeof(attr));
++  if(!uO.aflag && !G.zos_tag.ft_ccsid && G.pInfo->textfile) 
++  {
++	  __tag_new_file(fileno(G.outfile));
++  }
++
++  //Tag the binary file regardless of whether it is called with the -a flag or not.
++  if(!G.zos_tag.ft_ccsid && !G.pInfo->textfile)
++  {
++	  __setfdbinary(fileno(G.outfile));
++  }
 +  __disableautocvt(fileno(G.outfile));
 +}
-+
 +
 +/* Changes ccsid for terminal when ebcdic tagged file is extracted to stdout */
 +void zos_open_stdout(__G)
@@ -134,7 +147,7 @@ index efa97fc..95ecab7 100644
  
  
  #ifndef MTS
-@@ -1109,6 +1200,28 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
+@@ -1109,6 +1213,30 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
      ulg z_uidgid[2];
      int have_uidgid_flg;
  
@@ -151,7 +164,9 @@ index efa97fc..95ecab7 100644
 +        else if ((zfstat(STDOUT_FILENO, &G.statbuf) == 0) && \
 +                 (S_ISREG(G.statbuf.st_mode)))
 +          /* Output was redirected to file - set tag for that file */
++	{
 +            zos_set_outfile_tag();
++	}
 +        return;
 +    }
 +
