@@ -1,5 +1,5 @@
 diff --git a/unix/unix.c b/unix/unix.c
-index efa97fc..871729b 100644
+index efa97fc..6105825 100644
 --- a/unix/unix.c
 +++ b/unix/unix.c
 @@ -30,6 +30,11 @@
@@ -45,7 +45,7 @@ index efa97fc..871729b 100644
  #ifdef ACORN_FTYPE_NFS
      /* translate Acorn filetype information if asked to do so */
      if (uO.acorn_nfs_ext &&
-@@ -1091,6 +1100,101 @@ static int get_extattribs(__G__ pzt, z_uidgid)
+@@ -1091,6 +1100,105 @@ static int get_extattribs(__G__ pzt, z_uidgid)
  }
  #endif /* !MTS || SET_DIR_ATTRIB */
  
@@ -68,6 +68,7 @@ index efa97fc..871729b 100644
 +        if (eb_id == 0x737A) { /* Extra-field block with file tag info */
 +            G.zos_tag.ft_ccsid = makeword(4 + ef_buf);
 +            G.zos_tag.ft_flags = makeword(6 + ef_buf);
++	    G.iszosAttribSet=true;
 +            return 0;
 +        }
 +
@@ -75,6 +76,7 @@ index efa97fc..871729b 100644
 +        ef_buf += (eb_len + EB_HEADSIZE);
 +        ef_len -= (eb_len + EB_HEADSIZE);
 +    }
++    G.iszosAttribSet=false;
 +    return -1;
 +}
 +
@@ -100,7 +102,6 @@ index efa97fc..871729b 100644
 +  attrib_t attr;
 +  memset(&attr, 0, sizeof(attr));
 +  attr.att_filetagchg = 1;
-+  
 +  /* CCSID 65535 - for binary files, 0 for untagged files*/
 +  if(uO.aflag && ((G.zos_tag.ft_ccsid != 65535 && G.zos_tag.ft_ccsid != 0) 
 +		  || (!G.zos_tag.ft_ccsid && G.pInfo->textfile)))
@@ -115,15 +116,18 @@ index efa97fc..871729b 100644
 +    attr.att_filetag.ft_txtflag = 1;
 +  }
 +  __fchattr(fileno(G.outfile), &attr, sizeof(attr));
-+  if(!uO.aflag && !G.zos_tag.ft_ccsid && G.pInfo->textfile) 
-+  {
-+	  __tag_new_file(fileno(G.outfile));
-+  }
 +
-+  //Tag the binary file regardless of whether it is called with the -a flag or not.
-+  if(!G.zos_tag.ft_ccsid && !G.pInfo->textfile)
++  if(!G.iszosAttribSet && !G.zos_tag.ft_ccsid)
 +  {
-+	  __setfdbinary(fileno(G.outfile));
++	  if(G.pInfo->textfile && !uO.aflag)
++	  {
++		__tag_new_file(fileno(G.outfile));
++	  }
++  	  //Tag the binary file regardless of whether it is called with the -a flag or not.
++	  else if (!G.pInfo->textfile)
++	  {
++		__setfdbinary(fileno(G.outfile));
++	  }
 +  }
 +  __disableautocvt(fileno(G.outfile));
 +}
@@ -147,7 +151,7 @@ index efa97fc..871729b 100644
  
  
  #ifndef MTS
-@@ -1109,6 +1213,30 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
+@@ -1109,6 +1217,30 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
      ulg z_uidgid[2];
      int have_uidgid_flg;
  
