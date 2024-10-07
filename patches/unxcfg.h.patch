@@ -1,14 +1,15 @@
 diff --git a/unix/unxcfg.h b/unix/unxcfg.h
-index e39b283..71946b5 100644
+index e39b283..e3eaf27 100644
 --- a/unix/unxcfg.h
 +++ b/unix/unxcfg.h
-@@ -212,7 +212,59 @@ typedef struct stat z_stat;
+@@ -212,7 +212,61 @@ typedef struct stat z_stat;
  #  define RESTORE_UIDGID
  #endif /* ?MTS */
  
 +#ifdef __MVS__
 +#include <unistd.h>
 +#include <utime.h>
++#include <stdbool.h>
 +#define GOT_UTIMBUF
 +
 +/* z/OS specific definitions of Trace() and Info() macros.
@@ -57,12 +58,13 @@ index e39b283..71946b5 100644
 +    int rootlen, have_dirname, dirnamelen, notfirstcall;\
 +    zvoid *wild_dir;\
 +    struct zos_file_tag zos_tag;\
++    bool iszosAttribSet;\
 +    StdoutConvFn *zos_stdout_conv;
 +#else /* !__ZOS__ */
  #define SYSTEM_SPECIFIC_GLOBALS \
      int created_dir, renamed_fullpath;\
      char *rootpath, *buildpath, *end;\
-@@ -220,6 +272,7 @@ typedef struct stat z_stat;
+@@ -220,6 +274,7 @@ typedef struct stat z_stat;
      char *dirname, matchname[FILNAMSIZ];\
      int rootlen, have_dirname, dirnamelen, notfirstcall;\
      zvoid *wild_dir;
