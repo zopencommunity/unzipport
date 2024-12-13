@@ -1,5 +1,5 @@
 diff --git a/unzpriv.h b/unzpriv.h
-index dc9eff5..cbdaa84 100644
+index dc9eff5..5bb5fa2 100644
 --- a/unzpriv.h
 +++ b/unzpriv.h
 @@ -1844,6 +1844,11 @@
@@ -14,3 +14,12 @@ index dc9eff5..cbdaa84 100644
  #ifdef EBCDIC
  #  define foreign(c)    ascii[(uch)(c)]
  #  define native(c)     ebcdic[(uch)(c)]
+@@ -2406,7 +2411,7 @@ int    huft_build                OF((__GPRO__ ZCONST unsigned *b, unsigned n,
+                                      struct huft **t, unsigned *m));
+ #ifdef USE_ZLIB
+    int    UZinflate              OF((__GPRO__ int is_defl64));  /* inflate.c */
+-#  define inflate_free(x)        inflateEnd(&((Uz_Globs *)(&G))->dstrm)
++#  define inflate_free(x)        if(((Uz_Globs *)(&G))->inflInit) inflateEnd(&((Uz_Globs *)(&G))->dstrm)
+ #else
+    int    inflate                OF((__GPRO__ int is_defl64));  /* inflate.c */
+    int    inflate_free           OF((__GPRO));                  /* inflate.c */

@@ -4,12 +4,14 @@ UNZIP_VERSION="6.0"
 export ZOPEN_BUILD_LINE="DEV"
 export ZOPEN_CATEGORIES="compression"
 export ZOPEN_DEV_URL="https://github.com/LuaDist/unzip.git"
-export ZOPEN_DEV_DEPS="git make cmake zoslib zip"
+export ZOPEN_DEV_DEPS="git make cmake zoslib zip check_zedc"
 export ZOPEN_CONFIGURE="cmake"
 export ZOPEN_CONFIGURE_OPTS="."
 export ZOPEN_INSTALL="cmake"
 export ZOPEN_INSTALL_OPTS="--install . --prefix \$ZOPEN_INSTALL_DIR/"
 export ZOPEN_CHECK="${PWD}/unzip-tests/tests.sh"
+export ZOPEN_COMP=CLANG
+export ZOPEN_EXTRA_CFLAGS="-DUSE_ZLIB -DNO_ZLIBCALLBCK"
 
 zopen_check_results()
 {

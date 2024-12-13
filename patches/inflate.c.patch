@@ -1,0 +1,94 @@
+diff --git a/inflate.c b/inflate.c
+index f2f6864..fd93e62 100644
+--- a/inflate.c
++++ b/inflate.c
+@@ -411,6 +411,7 @@ int UZinflate(__G__ is_defl64)
+ {
+     int retval = 0;     /* return code: 0 = "no error" */
+     int err=Z_OK;
++
+ #if USE_ZLIB_INFLATCB
+ 
+ #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
+@@ -421,8 +422,11 @@ int UZinflate(__G__ is_defl64)
+ #endif
+ 
+     if (!G.inflInit) {
++
+         /* local buffer for efficiency */
+-        ZCONST char *zlib_RtVersion = zlibVersion();
++        char zlib_RtVersion[10];
++	strcpy(zlib_RtVersion, zlibVersion());
++	__e2a_s(zlib_RtVersion);
+ 
+         /* only need to test this stuff once */
+         if ((zlib_RtVersion[0] != ZLIB_VERSION[0]) ||
+@@ -431,7 +435,7 @@ int UZinflate(__G__ is_defl64)
+               "error:  incompatible zlib version (expected %s, found %s)\n",
+               ZLIB_VERSION, zlib_RtVersion));
+             return 3;
+-        } else if (strcmp(zlib_RtVersion, ZLIB_VERSION) != 0)
++        } else if (strncmp(zlib_RtVersion, ZLIB_VERSION, strlen(ZLIB_VERSION)) != 0)
+             Info(slide, 0x21, ((char *)slide,
+               "warning:  different zlib version (expected %s, using %s)\n",
+               ZLIB_VERSION, zlib_RtVersion));
+@@ -442,6 +446,7 @@ int UZinflate(__G__ is_defl64)
+         G.inflInit = 1;
+     }
+ 
++
+ #ifdef USE_DEFLATE64
+     if (is_defl64)
+     {
+@@ -510,8 +515,9 @@ int UZinflate(__G__ is_defl64)
+                 windowBits = 8;
+ 
+             Trace((stderr, "initializing inflate()\n"));
+-            err = inflateBackInit(&G.dstrm, windowBits, redirSlide);
+-
++#pragma convert("IBM-1047")
++	    err = inflateBackInit(&G.dstrm, windowBits, redirSlide);
++#pragma convert(pop)
+             if (err == Z_MEM_ERROR)
+                 return 3;
+             else if (err != Z_OK) {
+@@ -578,7 +584,10 @@ int UZinflate(__G__ is_defl64)
+         unsigned i;
+         int windowBits;
+         /* local buffer for efficiency */
+-        ZCONST char *zlib_RtVersion = zlibVersion();
++
++	char zlib_RtVersion[10];
++        strcpy(zlib_RtVersion, zlibVersion());
++        __e2a_s(zlib_RtVersion);
+ 
+         /* only need to test this stuff once */
+         if (zlib_RtVersion[0] != ZLIB_VERSION[0]) {
+@@ -586,7 +595,7 @@ int UZinflate(__G__ is_defl64)
+               "error:  incompatible zlib version (expected %s, found %s)\n",
+               ZLIB_VERSION, zlib_RtVersion));
+             return 3;
+-        } else if (strcmp(zlib_RtVersion, ZLIB_VERSION) != 0)
++        } else if (strncmp(zlib_RtVersion, ZLIB_VERSION, strlen(ZLIB_VERSION)) != 0)
+             Info(slide, 0x21, ((char *)slide,
+               "warning:  different zlib version (expected %s, using %s)\n",
+               ZLIB_VERSION, zlib_RtVersion));
+@@ -603,8 +612,9 @@ int UZinflate(__G__ is_defl64)
+         G.dstrm.zfree = (free_func)Z_NULL;
+ 
+         Trace((stderr, "initializing inflate()\n"));
++#pragma convert("IBM-1047")
+         err = inflateInit2(&G.dstrm, -windowBits);
+-
++#pragma convert(pop)
+         if (err == Z_MEM_ERROR)
+             return 3;
+         else if (err != Z_OK)
+@@ -708,6 +718,7 @@ uzinflate_cleanup_exit:
+         Trace((stderr, "oops!  (inflateReset() err = %d)\n", err));
+ 
+ #endif /* ?USE_ZLIB_INFLATCB */
++
+     return retval;
+ }
+ 
