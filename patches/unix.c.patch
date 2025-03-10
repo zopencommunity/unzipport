@@ -1,5 +1,5 @@
 diff --git a/unix/unix.c b/unix/unix.c
-index efa97fc..af82499 100644
+index efa97fc..2799f8d 100644
 --- a/unix/unix.c
 +++ b/unix/unix.c
 @@ -30,6 +30,11 @@
@@ -37,14 +37,15 @@ index efa97fc..af82499 100644
  
  /**********************/
  /* Function do_wild() */   /* for porting: dir separator; match(ignore_case) */
-@@ -430,8 +440,15 @@ int mapattr(__G)
+@@ -430,8 +440,16 @@ int mapattr(__G)
                   * We restrict symlink support to those "made-by" hosts that
                   * are known to support symbolic links.
                   */
 +#ifdef __MVS__
 +/* file mode is stored in legacy unix flag format. */
-+#define UNX_IFLNK      0120000 
-+                G.pInfo->symlink = ((G.pInfo->file_attr & UNX_IFLNK) == UNX_IFLNK) &&
++#define UNX_IFLNK      0120000
++#define UNX_IFMT       0170000
++                G.pInfo->symlink = ((G.pInfo->file_attr & UNX_IFMT) == UNX_IFLNK) &&
 +                                   SYMLINK_HOST(G.pInfo->hostnum);
 +#else
                  G.pInfo->symlink = S_ISLNK(G.pInfo->file_attr) &&
@@ -53,7 +54,7 @@ index efa97fc..af82499 100644
  #endif
                  return 0;
              }
-@@ -686,7 +703,6 @@ int mapname(__G__ renamed)
+@@ -686,7 +704,6 @@ int mapname(__G__ renamed)
          *pathcomp = '_';
      else if (strcmp(pathcomp, "..") == 0)
          strcpy(pathcomp, "__");
@@ -61,7 +62,7 @@ index efa97fc..af82499 100644
  #ifdef ACORN_FTYPE_NFS
      /* translate Acorn filetype information if asked to do so */
      if (uO.acorn_nfs_ext &&
-@@ -1091,6 +1107,101 @@ static int get_extattribs(__G__ pzt, z_uidgid)
+@@ -1091,6 +1108,101 @@ static int get_extattribs(__G__ pzt, z_uidgid)
  }
  #endif /* !MTS || SET_DIR_ATTRIB */
  
@@ -163,7 +164,7 @@ index efa97fc..af82499 100644
  
  
  #ifndef MTS
-@@ -1109,6 +1220,30 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
+@@ -1109,6 +1221,30 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
      ulg z_uidgid[2];
      int have_uidgid_flg;
  
