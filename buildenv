@@ -2,7 +2,7 @@ UNZIP_VERSION="6.0"
 UNZIP_VERSION_SHORT=$(echo $UNZIP_VERSION | tr -d '.')
 
 # bump: debian-version /DEBIAN_VERSION="(.*)"/ https://deb.debian.org/debian/pool/main/u/unzip/|re:/unzip_6\.0-(\d+)\.debian\.tar\.xz/|semver:*
-DEBIAN_VERSION="31"
+DEBIAN_VERSION="32"
 
 export ZOPEN_BUILD_LINE="STABLE"
 export ZOPEN_CATEGORIES="compression"
